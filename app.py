@@ -17,8 +17,16 @@ app = Flask(__name__)
 # Fetch API Key from environment variables
 GENAI_API_KEY = os.getenv("GENAI_API_KEY")
 
-if not GENAI_API_KEY:
-    raise RuntimeError("GENAI_API_KEY not set in environment variables")
+if GENAI_API_KEY:
+    try:
+        client = genai.Client(api_key=GENAI_API_KEY)
+        print("Gemini client initialized")
+    except Exception as e:
+        print("Gemini initialization failed:", e)
+else:
+    print("GENAI_API_KEY not found. Running app without AI.")
+    client = None
+
 
 # Initialize client
 if GENAI_API_KEY:
@@ -320,4 +328,5 @@ def plan():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
 
