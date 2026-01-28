@@ -15,12 +15,10 @@ load_dotenv(dotenv_path=env_path)
 app = Flask(__name__)
 
 # Fetch API Key from environment variables
-GENAI_API_KEY = os.getenv("GENAI_API_KEY")
+GENAI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 if not GENAI_API_KEY:
-    raise RuntimeError("GENAI_API_KEY not found.")
-
-client = genai.Client(api_key=GENAI_API_KEY)
+    print("CRITICAL: GEMINI_API_KEY not found in .env file.")
 
 # Initialize client
 if GENAI_API_KEY:
@@ -29,6 +27,17 @@ if GENAI_API_KEY:
 else:
     print("DEBUG: No API Key available for client initialization.")
     client = None
+
+@app.route('/status')
+def api_status():
+    if not client:
+        return jsonify({"status": "error", "message": "API Client not initialized. Check .env file."})
+    try:
+        # Quick ping to verify connection
+        client.models.generate_content(model="gemini-2.5-flash", contents="ping")
+        return jsonify({"status": "connected", "message": "API is working perfectly!"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
 
 def get_wiki_image(query, city=None):
     """Fetches the main image for a query from Wikipedia with improved precision."""
@@ -127,9 +136,9 @@ def get_gemini_recommendations(destination, days, budget, interests, travelers):
     """
 
     try:
-        print(f"Generating itinerary for {destination} using gemini-2.0-flash...")
+        print(f"DEBUG: Generating for {destination}...")
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
+            model="gemini-2.5-flash",
             contents=prompt,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
@@ -138,56 +147,18 @@ def get_gemini_recommendations(destination, days, budget, interests, travelers):
         )
         
         if not response or not response.text:
-            print("Gemini API returned no text. Check safety filters or quota.")
+            print(f"DEBUG ERROR: Empty response. Safety filters might be triggered.")
             return None
             
+        print("DEBUG: Raw JSON received successfully.")
         return json.loads(response.text)
             
     except Exception as e:
-        print(f"CRITICAL AI ERROR: {str(e)}")
-        # Log more info if it's a 404
-        if "404" in str(e):
-            print("ERROR: Model not found. Check model name or API key permissions.")
-        elif "PERMISSION_DENIED" in str(e).upper():
-            print("ERROR: API Key blocked/leaked. Switching to DEMO MODE for this session.")
-        
-        # FALLBACK: Return a high-quality Demo Itinerary so the app doesn't just fail
-        return {
-            "destination": destination,
-            "budget": "Premium Demo",
-            "hotels": [
-                {"name": f"Royal {destination} Palace", "price_range": "₹18,500/night", "rating": "4.9", "description": "Iconic luxury with panoramic views.", "address": "1 Palace Road, Heritage District", "map_url": "#"},
-                {"name": "Azure Bay Resort", "price_range": "₹12,000/night", "rating": "4.7", "description": "Coastal elegance and private beach access.", "address": "Beachside Blvd, Waterfront", "map_url": "#"},
-                {"name": "The Urban Retreat", "price_range": "₹7,500/night", "rating": "4.5", "description": "Modern minimalist design in the city center.", "address": "45 Metro Ave, Downtown", "map_url": "#"},
-                {"name": "Green Garden Inn", "price_range": "₹4,200/night", "rating": "4.3", "description": "Cozy, eco-friendly stays surrounded by nature.", "address": "Valley Way, Highlands", "map_url": "#"}
-            ],
-            "itinerary": [
-                {
-                    "day": 1,
-                    "title": "Historical Immersion",
-                    "places": [
-                        {"name": f"The Grand Citadel of {destination}", "time": "09:30 AM", "rating": "4.9", "description": "Breathtaking medieval architecture and history.", "address": "Old Fort Hill"},
-                        {"name": "Victory Gardens", "time": "01:30 PM", "rating": "4.7", "description": "Lush botanical landscapes and serene lakes.", "address": "Garden District"},
-                        {"name": "Artisans Market", "time": "04:30 PM", "rating": "4.6", "description": "Local crafts, textiles, and authentic vibes.", "address": "Culture Square"}
-                    ]
-                },
-                {
-                    "day": 2,
-                    "title": "Modern Wonders & Flavors",
-                    "places": [
-                        {"name": "Skydeck Observatory", "time": "10:00 AM", "rating": "4.8", "description": "Stunning 360-degree views of the entire region.", "address": "Infinity Tower"},
-                        {"name": "Culinary Heritage Museum", "time": "02:00 PM", "rating": "4.5", "description": "Interactive exhibits on local flavors.", "address": "Spice Lane"},
-                        {"name": "Riverside Promenade", "time": "06:00 PM", "rating": "4.8", "description": "Evening walk with live music and street art.", "address": "River Bank"}
-                    ]
-                }
-            ],
-            "food": [
-                {"name": "Imperial Thali", "type": "Traditional Indian", "rating": "4.9", "location": "Heritage Wing"},
-                {"name": "Ocean Catch Grill", "type": "Seafood", "rating": "4.7", "location": "Harbor Front"},
-                {"name": "The Saffron Cafe", "type": "Fusion", "rating": "4.6", "location": "Modern Quarter"},
-                {"name": "Sunset Bistro", "type": "International", "rating": "4.8", "location": "Rooftop Terrace"}
-            ]
-        }
+        print(f"DEBUG CRITICAL AI ERROR: {str(e)}")
+        # Log to file for route to read
+        with open("generation_error.log", "w") as f:
+            f.write(str(e))
+        return None
 
 @app.route('/chat', methods=['POST'])
 def chat():
@@ -207,11 +178,11 @@ def chat():
         Provide a helpful, short answer (max 3 sentences) suitable for a chat bubble.
         """
         
-        response = client.models.generate_content(model="gemini-2.0-flash", contents=chat_prompt)
+        response = client.models.generate_content(model="gemini-2.5-flash", contents=chat_prompt)
         return jsonify({"response": response.text})
     except Exception as e:
         print(f"Chat Error: {e}")
-        return jsonify({"response": "Sorry, I am having trouble connecting right now."})
+        return jsonify({"response": "Sorry, I am having trouble connecting to the AI right now. Please check your API key."})
 
 @app.route('/')
 def index():
@@ -349,5 +320,3 @@ def plan():
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-
