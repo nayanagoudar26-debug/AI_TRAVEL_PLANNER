@@ -63,9 +63,9 @@
                 </div>
 
                 <div class="form-group">
-                    <label><i class="far fa-calendar-alt"></i> How many days?</label>
-                    <input type="number" name="days" class="form-control" placeholder="e.g., 3, 5, 7" min="1" max="30"
-                        required>
+                    <label><i class="far fa-calendar-alt"></i> Plan for how many days?</label>
+                    <input type="number" name="days" class="form-control" placeholder="Enter number of days (e.g., 7)"
+                        min="1" max="30" required>
                 </div>
 
                 <div class="form-group">
@@ -82,8 +82,8 @@
                     <div class="travelers-input">
                         <select name="travelers_type" id="travelers-type" class="form-control"
                             onchange="toggleTravelerCount()">
-                            <option value="Solo">Solo (1 Person)</option>
-                            <option value="Couple">Couple (2 People)</option>
+                            <option value="Solo">Solo</option>
+                            <option value="Couple">Couple</option>
                             <option value="Family">Family</option>
                             <option value="Friends">Friends</option>
                         </select>
@@ -104,32 +104,32 @@
                     <div class="interests-grid">
                         <label class="interest-card">
                             <input type="checkbox" name="interests" value="Nature">
-                            <i class="fas fa-tree"></i>
+                            <i class="fas fa-tree"></i><br>
                             <span>Nature</span>
                         </label>
                         <label class="interest-card">
                             <input type="checkbox" name="interests" value="History">
-                            <i class="fas fa-landmark"></i>
+                            <i class="fas fa-landmark"></i><br>
                             <span>History</span>
                         </label>
                         <label class="interest-card">
                             <input type="checkbox" name="interests" value="Food">
-                            <i class="fas fa-utensils"></i>
+                            <i class="fas fa-utensils"></i><br>
                             <span>Food</span>
                         </label>
                         <label class="interest-card">
                             <input type="checkbox" name="interests" value="Adventure">
-                            <i class="fas fa-hiking"></i>
+                            <i class="fas fa-hiking"></i><br>
                             <span>Adventure</span>
                         </label>
                         <label class="interest-card">
                             <input type="checkbox" name="interests" value="Shopping">
-                            <i class="fas fa-shopping-bag"></i>
+                            <i class="fas fa-shopping-bag"></i><br>
                             <span>Shopping</span>
                         </label>
                         <label class="interest-card">
                             <input type="checkbox" name="interests" value="Relaxation">
-                            <i class="fas fa-spa"></i>
+                            <i class="fas fa-spa"></i><br>
                             <span>Relaxation</span>
                         </label>
                     </div>
@@ -140,8 +140,28 @@
         </div>
     </div>
 
+    <!-- Chat Widget -->
+    <div id="chat-widget">
+        <div id="chat-header">
+            <span><i class="fas fa-robot"></i> AI Travel Assistant</span>
+            <span id="close-chat" style="cursor: pointer;">&times;</span>
+        </div>
+        <div id="chat-body">
+            <div class="chat-message bot">
+                Hi there! I'm your AI Travel Assistant. Need help choosing a destination or deciding how many days to
+                stay? Just ask!
+            </div>
+        </div>
+        <div id="chat-input-area">
+            <input type="text" id="chat-input" placeholder="Ask me anything...">
+            <button id="send-btn"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+    <div id="chat-toggle">
+        <i class="fas fa-comment-dots"></i>
+    </div>
+
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
-
 
 </html>
