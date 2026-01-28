@@ -168,15 +168,39 @@ def get_gemini_recommendations(destination, days, budget, interests, travelers):
             f.write(str(e))
         return None
 
-@app.route('/chat', methods=['POST'])
-def chat():
+@app.route("/plan", methods=["POST"])
+def plan():
     try:
-        data = request.json
-        user_message = data.get('message')
-        context = data.get('context', {})
-        
+        # get user inputs (keep your existing code)
+        destination = request.form.get("destination")
+        days = request.form.get("days")
+        budget = request.form.get("budget")
+        interests = request.form.get("interests")
+
         if not client:
-            return jsonify({"response": "API Key missing."})
+            return jsonify({
+                "itinerary": "Demo Mode: AI service unavailable.",
+                "days": [
+                    {"day": 1, "plan": "Sample sightseeing and leisure activities."},
+                    {"day": 2, "plan": "Local exploration and food experience."}
+                ]
+            })
+
+        # YOUR EXISTING AI CODE HERE
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=f"Create a {days}-day itinerary for {destination}"
+        )
+
+        return jsonify(response.text)
+
+    except Exception as e:
+        print("Error during itinerary generation:", e)
+        return jsonify({
+            "itinerary": "Temporary error. Please try again later.",
+            "error": str(e)
+        })
+
 
         chat_prompt = f"""
         You are a helpful travel assistant for a trip to {context.get('destination', 'the destination')}.
@@ -328,5 +352,6 @@ def plan():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
 
 
