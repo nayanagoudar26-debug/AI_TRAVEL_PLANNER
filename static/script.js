@@ -79,13 +79,26 @@ document.addEventListener('DOMContentLoaded', function () {
     const chatBody = document.getElementById('chat-body');
 
     if (chatToggle) {
-        chatToggle.onclick = () => chatWidget.style.display = 'flex';
-        closeChat.onclick = () => chatWidget.style.display = 'none';
+        chatToggle.onclick = () => {
+            chatWidget.style.display = 'flex';
+            chatToggle.style.display = 'none';
+        };
+        closeChat.onclick = () => {
+            chatWidget.style.display = 'none';
+            chatToggle.style.display = 'flex';
+        };
 
         sendBtn.onclick = sendMessage;
         chatInput.onkeypress = (e) => {
             if (e.key === 'Enter') sendMessage();
         };
+
+        // Proactive Greeting after a short delay
+        setTimeout(() => {
+            if (chatWidget.style.display !== 'flex') {
+                chatToggle.classList.add('pulse');
+            }
+        }, 3000);
     }
 
     function sendMessage() {
@@ -106,19 +119,21 @@ document.addEventListener('DOMContentLoaded', function () {
             body: JSON.stringify({
                 message: text,
                 context: {
-                    destination: typeof DESTINATION !== 'undefined' ? DESTINATION : 'Unknown',
-                    days: typeof DESTINATION !== 'undefined' ? DAYS : '3'
+                    destination: typeof DESTINATION !== 'undefined' ? DESTINATION : (document.getElementsByName('destination')[0]?.value || 'Unknown'),
+                    days: typeof DAYS !== 'undefined' ? DAYS : (document.getElementsByName('days')[0]?.value || '7')
                 }
             })
         })
             .then(res => res.json())
             .then(data => {
-                document.getElementById(loadingId).remove();
+                const loadingEl = document.getElementById(loadingId);
+                if (loadingEl) loadingEl.remove();
                 appendMessage(data.response, 'bot');
             })
             .catch(err => {
-                document.getElementById(loadingId).remove();
-                appendMessage("Sorry, I encountered an error.", 'bot');
+                const loadingEl = document.getElementById(loadingId);
+                if (loadingEl) loadingEl.remove();
+                appendMessage("Sorry, I encountered an error. Please check your API key.", 'bot');
                 console.error(err);
             });
     }
@@ -129,6 +144,10 @@ document.addEventListener('DOMContentLoaded', function () {
         div.innerText = text;
         if (id) div.id = id;
         chatBody.appendChild(div);
-        chatBody.scrollTop = chatBody.scrollHeight;
+
+        // Auto-scroll to bottom
+        setTimeout(() => {
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }, 100);
     }
 });
