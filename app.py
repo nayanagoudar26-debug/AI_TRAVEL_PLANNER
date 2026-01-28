@@ -20,7 +20,7 @@ GENAI_API_KEY = os.getenv("GENAI_API_KEY")
 if not GENAI_API_KEY:
     raise RuntimeError("GENAI_API_KEY not found.")
 
-genai.configure(api_key=GENAI_API_KEY)
+client = genai.Client(api_key=GENAI_API_KEY)
 
 # Initialize client
 if GENAI_API_KEY:
@@ -349,4 +349,5 @@ def plan():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
 
