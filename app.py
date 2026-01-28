@@ -15,10 +15,10 @@ load_dotenv(dotenv_path=env_path)
 app = Flask(__name__)
 
 # Fetch API Key from environment variables
-GENAI_API_KEY = os.getenv("GEMINI_API_KEY")
+GENAI_API_KEY = os.getenv("GENAI_API_KEY")
 
 if not GENAI_API_KEY:
-    print("CRITICAL: GEMINI_API_KEY not found in .env file.")
+    raise RuntimeError("GENAI_API_KEY not set in environment variables")
 
 # Initialize client
 if GENAI_API_KEY:
@@ -320,3 +320,4 @@ def plan():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
