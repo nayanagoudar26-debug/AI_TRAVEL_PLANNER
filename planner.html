@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Trip to {{ destination }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="planner-container">
+        <div class="planner-header">
+            <a href="/" style="color: white; text-decoration: none; float: left;"><i class="fas fa-arrow-left"></i>
+                Back</a>
+            <h1>Trip to {{ destination }}</h1>
+            <p>Here is your personalized AI-generated itinerary</p>
+        </div>
+
+        {% if error %}
+        <div style="background: white; padding: 20px; border-radius: 10px; color: red; text-align: center;">
+            <h3>Error</h3>
+            <p>{{ error }}</p>
+        </div>
+        {% else %}
+
+        <!-- Hotels Section -->
+        <h2 class="section-title"><i class="fas fa-hotel"></i> Recommended Hotels</h2>
+        <div class="horizontal-scroll">
+            {% for hotel in data.hotels %}
+            <div class="card">
+                <!-- Dynamic Image -->
+                <img src="{{ hotel.image }}" class="card-img-top" alt="{{ hotel.name }}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ hotel.name }}</h5>
+                    <p class="card-text"><small><i class="fas fa-map-marker-alt"></i> {{ hotel.address }}</small></p>
+                    <p class="card-text">
+                        <span class="badge">{{ hotel.rating }} <i class="fas fa-star"></i></span>
+                        <span class="price-tag">{{ hotel.price_range }}</span>
+                    </p>
+                    <a href="https://www.google.com/search?q=book+{{ hotel.name }}+{{ destination }}" target="_blank"
+                        class="btn-link">Book Now</a>
+                    <a href="https://www.google.com/maps/search/?api=1&query={{ hotel.name }}+{{ destination }}"
+                        target="_blank" class="btn-link map">View on Map</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Itinerary Section -->
+        <h2 class="section-title"><i class="fas fa-route"></i> Daily Itinerary</h2>
+        <div class="timeline">
+            {% for day in data.itinerary %}
+            <div class="timeline-item">
+                <div class="day-badge">Day {{ day.day }}</div>
+                <div class="day-content">
+                    {% for place in day.places %}
+                    <div class="place-item" data-name="{{ place.name }}" data-desc="{{ place.description }}"
+                        data-address="{{ place.address | default('Address unavailable') }}"
+                        data-map="https://www.google.com/maps/search/?api=1&query={{ place.name }}+{{ destination }}"
+                        onclick="openPlaceModal(this)">
+                        <img src="{{ place.image }}" class="place-img" alt="{{ place.name }}">
+                        <div class="place-info">
+                            <h4>{{ place.name }}</h4>
+                            <p style="margin-bottom: 5px;">
+                                <span class="badge" style="background: #ffc107; color: #333;">{{ place.rating }} <i
+                                        class="fas fa-star"></i></span>
+                                <span style="font-size: 0.85rem; color: #666; margin-left:10px;"><i
+                                        class="far fa-clock"></i> {{ place.time }}</span>
+                            </p>
+                            <p>{{ place.description | truncate(100) }}</p>
+                            <span style="color: var(--primary-color); font-size: 0.8rem;">
+                                <i class="fas fa-info-circle"></i> Click for details
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Food Section -->
+        <h2 class="section-title"><i class="fas fa-utensils"></i> Food Recommendations</h2>
+        <div class="horizontal-scroll">
+            {% for food in data.food %}
+            <div class="card">
+                <img src="{{ food.image }}" class="card-img-top" alt="{{ food.name }}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ food.name }}</h5>
+                    <p class="card-text">{{ food.type }}</p>
+                    <p class="card-text"><span class="badge">{{ food.rating }} <i class="fas fa-star"></i></span></p>
+                    <a href="https://www.google.com/maps/search/?api=1&query={{ food.name }}+{{ destination }}"
+                        target="_blank" class="btn-link map">View Location</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Map Section -->
+        <h2 class="section-title"><i class="fas fa-map"></i> Destination Map</h2>
+        <div class="map-container">
+            <iframe width="100%" height="100%" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"
+                src="https://maps.google.com/maps?width=100%&height=600&hl=en&q={{ destination }}&ie=UTF8&t=&z=14&iwloc=B&output=embed">
+            </iframe>
+        </div>
+
+        <!-- Place Details Modal -->
+        <div id="placeModal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2 id="modal-title" style="margin-bottom: 10px; color: var(--primary-color);"></h2>
+                <p id="modal-desc" style="margin-bottom: 15px;"></p>
+                <p id="modal-address" style="margin-bottom: 20px; font-weight: bold; color: #555;"><i
+                        class="fas fa-map-marker-alt"></i> </p>
+                <a id="modal-map" href="#" target="_blank" class="btn-link map"
+                    style="width: 100%; display: block;">View on Google Maps</a>
+            </div>
+        </div>
+
+        {% endif %}
+        <!-- Chat Widget -->
+        <div id="chat-widget">
+            <div id="chat-header">
+                <span><i class="fas fa-robot"></i> AI Travel Assistant</span>
+                <span id="close-chat" style="cursor: pointer;">&times;</span>
+            </div>
+            <div id="chat-body">
+                <div class="chat-message bot">
+                    Hello! Ask me anything about your trip to {{ destination }}!
+                </div>
+            </div>
+            <div id="chat-input-area">
+                <input type="text" id="chat-input" placeholder="Ask a question...">
+                <button id="send-btn"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+        <div id="chat-toggle">
+            <i class="fas fa-comment-dots"></i>
+        </div>
+
+    </div>
+    <script>
+        const DESTINATION = "{{ destination }}";
+        const DAYS = Number("{{ data.itinerary|length if data and data.itinerary else 0 }}");
+    </script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>
